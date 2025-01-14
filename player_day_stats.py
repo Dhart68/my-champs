@@ -5,6 +5,7 @@ import pandas as pd
 from datetime import datetime, timezone
 from dateutil import parser
 
+from nba_api.stats.static import players
 from nba_api.stats.endpoints import commonplayerinfo
 from nba_api.live.nba.endpoints import scoreboard
 from nba_api.live.nba.endpoints import boxscore
@@ -28,6 +29,7 @@ def player_day_stats(player_picked = 'victor wembanyama'):
 
 
     # Check if the team of the player picked played today and get the game_id
+    game_id=0
     for game in games:
         if player_team_name.lower() in game['awayTeam']['teamName'].lower():
             print(f"Found {player_team_name} game! They played away! gameId: {game['gameId']}")
@@ -45,9 +47,9 @@ def player_day_stats(player_picked = 'victor wembanyama'):
     box = boxscore.BoxScore(game_id)
 
     if game_location == 'away':
-        players = box.away_team.get_dict()['players']
+        players_box = box.away_team.get_dict()['players']
     if game_location == 'home':
-        players = box.home_team.get_dict()['players']
+        players_box = box.home_team.get_dict()['players']
 
     # Display Team boxscore
     #f = "{player_id}: {name}: {points} PTS"
@@ -55,14 +57,14 @@ def player_day_stats(player_picked = 'victor wembanyama'):
     #    print(f.format(player_id=player['personId'],name=player['name'],points=player['statistics']['points']))
 
     # build the team dataframe
-    players_df = pd.DataFrame(players)
+    players_df = pd.DataFrame(players_box)
 
     # build the dataframe of the picked player
     player_df = pd.DataFrame(players_df[players_df['personId']==player_id]['statistics'].to_list())
 
     # select the columns
     player_df_selection = player_df[['minutes','points','twoPointersPercentage', 'threePointersAttempted','threePointersPercentage','reboundsDefensive', 'reboundsOffensive','assists','steals','blocks','blocksReceived','turnovers','foulsPersonal']]
-    player_df_selection['familyName'] = player_family_name
+    player_df_selection['player_Name'] = player_family_name
 
     # Rename and reorder the columns
     player_df_selection = player_df_selection[['familyName','minutes','points','twoPointersPercentage','threePointersAttempted','threePointersPercentage','reboundsDefensive', 'reboundsOffensive','assists','steals','blocks','blocksReceived','turnovers','foulsPersonal']]
